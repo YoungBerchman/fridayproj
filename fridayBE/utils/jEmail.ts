@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-const congratEmail = async (user: any) => {
+const sendEmail = async (user: any) => {
   const secret = process.env.JWT_SECRET as string;
   const token = jwt.sign({ id: user._id }, secret, { expiresIn: "3d" });
   const transport = nodemailer.createTransport({
@@ -21,17 +21,18 @@ const congratEmail = async (user: any) => {
     .sendMail({
       from: `HackerRank <ebifegha123@gmail.com>`,
       to: `${user.email}`,
-      subject: "Account Verified",
+      subject: "Verify Your Email Account",
       html: `  <div
       style="background-color: rgb(221, 220, 220); padding: 12px; height: auto"
     >
-      <h1 style="text-align: center">Your Account has been verified.</h1>
+      <h1 style="text-align: center">Verify your email address.</h1>
       <p>Hi, ${user.name}</p>
 
       <p>
-       Congratulations, your email ${user.email} has been successfully verified and you can proceed to login:
+        Someone tried to sign up for an account with ${user.email} if it was
+        you, enter this verification code in the app:
       </p>
-      
+      <h1>${user.verifiedToken}</h1>
       <button
         style="
           border: none;
@@ -51,4 +52,5 @@ const congratEmail = async (user: any) => {
       log("Email Sent");
     });
 };
-export default congratEmail;
+
+export default sendEmail;

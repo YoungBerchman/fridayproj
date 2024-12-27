@@ -4,6 +4,9 @@ import crypto from "crypto";
 import env from "dotenv";
 import jwt from "jsonwebtoken";
 import userModel from "../model/userModel";
+// import { createAccountEmail } from "../utils/email";
+import sendEmail from "../utils/jEmail";
+import congratEmail from "../utils/email";
 env.config();
 
 export const createAccount = async (
@@ -25,6 +28,8 @@ export const createAccount = async (
       verifiedToken: token,
     });
 
+    sendEmail(user);
+
     return res.status(201).json({
       message: "user created ",
       data: user,
@@ -38,10 +43,28 @@ export const createAccount = async (
   }
 };
 
-export const verifyAccount = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { userID } = req.params;
+  const { verifyToken } = req.body;
+  const user = await userModel.findById(userID);
+  if (verifyToken === user?.verifiedToken) {
+    const getD = await userModel.findByIdAndUpdate(
+      userID,
+      { isVerified: true, verifiedToken: null },
+      { new: true }
+    );
+    res.status(200).json({
+      message: "Agent Verified",
+      data: getD,
+    });
+  } else {
+    res.status(400).json({
+      message: "Incorrect Verification code",
+    });
+  }
+};
+
+export const verifyAccount = async (req: Request, res: Response) => {
   try {
     const { userID } = req.params;
 
@@ -54,11 +77,12 @@ export const verifyAccount = async (
       { new: true }
     );
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "user account verified ",
       data: user,
       status: 201,
     });
+    congratEmail(user);
   } catch (error) {
     return res.status(404).json({
       message: "Error verifying Account",
